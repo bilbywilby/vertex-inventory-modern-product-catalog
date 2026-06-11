@@ -1,6 +1,6 @@
 # Cloudflare Full-Stack Template
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/bilbywilby/vertex-inventory-modern-product-catalog)
 
 A production-ready full-stack application template built with React, Vite, and Cloudflare Workers. Features a modern UI with shadcn components, type-safe backend using Durable Objects, and seamless deployment to the Cloudflare edge.
 
@@ -86,7 +86,7 @@ Deploy to Cloudflare Workers with a single command:
 bun run deploy
 ```
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/bilbywilby/vertex-inventory-modern-product-catalog)
 
 After deployment, your application will be live on your `*.workers.dev` subdomain. Update `wrangler.jsonc` for custom domains or additional bindings.
 
