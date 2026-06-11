@@ -1,20 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Package, CalendarDays, Plus, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Package, CalendarDays, Plus, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
-import { MOCK_INVENTORY_ITEMS } from '@shared/mock-data';
+import { api } from '@/lib/api-client';
+import { InventoryItem } from '@shared/types';
 export function HomePage() {
-  const totalItems = MOCK_INVENTORY_ITEMS.length;
-  const expiringWarranties = MOCK_INVENTORY_ITEMS.filter(item => {
-    if (!item.warranty?.end_date) return false;
-    const expiry = new Date(item.warranty.end_date);
-    const now = new Date();
-    const diff = expiry.getTime() - now.getTime();
-    return diff > 0 && diff < (90 * 24 * 60 * 60 * 1000); // 90 days
-  }).length;
+  const { data: stats, isLoading: statsLoading } = useQuery<{
+    totalItems: number;
+    categoryStats: Record<string, number>;
+    expiringSoonCount: number;
+  }>({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => api('/api/stats'),
+  });
+  const { data: recent, isLoading: itemsLoading } = useQuery<{ items: InventoryItem[] }>({
+    queryKey: ['recent-items'],
+    queryFn: () => api('/api/items?limit=4'),
+  });
+  const isLoading = statsLoading || itemsLoading;
   return (
     <AppLayout container>
       <div className="space-y-12">
@@ -48,27 +55,27 @@ export function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="border-none shadow-soft-sm bg-white dark:bg-slate-900 transition-all hover:shadow-soft-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Items</CardTitle>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Items</span>
               <Package className="h-4 w-4 text-appAccent" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{totalItems}</div>
+              <div className="text-3xl font-bold">{stats?.totalItems ?? 0}</div>
               <p className="text-xs text-muted-foreground mt-1">Across all categories</p>
             </CardContent>
           </Card>
           <Card className="border-none shadow-soft-sm bg-white dark:bg-slate-900 transition-all hover:shadow-soft-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Warranty Alerts</CardTitle>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Warranty Alerts</span>
               <CalendarDays className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{expiringWarranties}</div>
+              <div className="text-3xl font-bold">{stats?.expiringSoonCount ?? 0}</div>
               <p className="text-xs text-muted-foreground mt-1">Expiring within 90 days</p>
             </CardContent>
           </Card>
           <Card className="border-none shadow-soft-sm bg-white dark:bg-slate-900 transition-all hover:shadow-soft-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active Protection</CardTitle>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Protection</span>
               <ShieldCheck className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
@@ -77,7 +84,7 @@ export function HomePage() {
             </CardContent>
           </Card>
         </div>
-        {/* Recent Items Preview (Static for Phase 1) */}
+        {/* Recent Items Preview */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold tracking-tight">Recently Added</h2>
@@ -85,19 +92,31 @@ export function HomePage() {
               View all
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {MOCK_INVENTORY_ITEMS.slice(0, 4).map((item) => (
-              <Card key={item.id} className="overflow-hidden hover:border-appAccent/50 transition-colors cursor-pointer group">
-                <div className="aspect-video bg-muted flex items-center justify-center">
-                   <Package className="h-8 w-8 text-muted-foreground/30 group-hover:scale-110 transition-transform" />
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-appAccent" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {recent?.items?.length ? recent.items.map((item) => (
+                <Card key={item.id} className="overflow-hidden hover:border-appAccent/50 transition-colors cursor-pointer group" asChild>
+                  <Link to={`/inventory/${item.id}`}>
+                    <div className="aspect-video bg-muted flex items-center justify-center">
+                       <Package className="h-8 w-8 text-muted-foreground/30 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold truncate">{item.product_name}</h3>
+                      <p className="text-sm text-muted-foreground">{item.brand}</p>
+                    </CardContent>
+                  </Link>
+                </Card>
+              )) : (
+                <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">
+                  No items in inventory yet.
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold truncate">{item.product_name}</h3>
-                  <p className="text-sm text-muted-foreground">{item.brand}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <Toaster richColors />

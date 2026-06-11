@@ -1,17 +1,41 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { InventoryItemEntity } from "./entities";
-import { ok, bad, notFound, isStr } from './core-utils';
+import { ok, bad, notFound } from './core-utils';
 import type { InventoryItem } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
+  // GET DASHBOARD STATS
+  app.get('/api/stats', async (c) => {
+    await InventoryItemEntity.ensureSeed(c.env);
+    const { items } = await InventoryItemEntity.list(c.env, null, 1000); // Fetch all for stats
+    const categoryStats: Record<string, number> = {};
+    let expiringSoonCount = 0;
+    const now = new Date();
+    const ninetyDaysFromNow = new Date(now.getTime() + (90 * 24 * 60 * 60 * 1000));
+    items.forEach(item => {
+      categoryStats[item.category] = (categoryStats[item.category] || 0) + 1;
+      if (item.warranty?.end_date) {
+        const expiry = new Date(item.warranty.end_date);
+        if (expiry > now && expiry <= ninetyDaysFromNow) {
+          expiringSoonCount++;
+        }
+      }
+    });
+    return ok(c, {
+      totalItems: items.length,
+      categoryStats,
+      expiringSoonCount,
+      timestamp: new Date().toISOString()
+    });
+  });
   // LIST ITEMS
   app.get('/api/items', async (c) => {
     await InventoryItemEntity.ensureSeed(c.env);
     const cursor = c.req.query('cursor');
     const limit = c.req.query('limit');
     const page = await InventoryItemEntity.list(
-      c.env, 
-      cursor ?? null, 
+      c.env,
+      cursor ?? null,
       limit ? Math.max(1, (Number(limit) | 0)) : 50
     );
     return ok(c, page);

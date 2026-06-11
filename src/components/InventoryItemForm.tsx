@@ -21,23 +21,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { InventoryItem, CategoryType, ConditionType, CurrencyType } from '@shared/types';
+import { InventoryItem } from '@shared/types';
 import { Loader2 } from 'lucide-react';
-const formSchema = z.z.object({
-  product_name: z.z.string().min(2, 'Product name must be at least 2 characters'),
-  brand: z.z.string().min(1, 'Brand is required'),
-  category: z.z.enum(['electronics', 'tools', 'appliances', 'furniture', 'vehicles', 'other']),
-  condition: z.z.enum(['new', 'refurbished', 'used']),
-  purchase_date: z.z.string().min(1, 'Purchase date is required'),
-  price: z.z.coerce.number().min(0, 'Price cannot be negative'),
-  currency: z.z.enum(['USD', 'EUR', 'GBP', 'JPY']),
-  location: z.z.string().optional(),
-  model_number: z.z.string().optional(),
-  serial_number: z.z.string().optional(),
-  retailer: z.z.string().optional(),
-  notes: z.z.string().optional(),
+const formSchema = z.object({
+  product_name: z.string().min(2, 'Product name must be at least 2 characters'),
+  brand: z.string().min(1, 'Brand is required'),
+  category: z.enum(['electronics', 'tools', 'appliances', 'furniture', 'vehicles', 'other']),
+  condition: z.enum(['new', 'refurbished', 'used']),
+  purchase_date: z.string().min(1, 'Purchase date is required'),
+  price: z.coerce.number().min(0, 'Price cannot be negative'),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'JPY']),
+  location: z.string().optional(),
+  model_number: z.string().optional(),
+  serial_number: z.string().optional(),
+  retailer: z.string().optional(),
+  notes: z.string().optional(),
 });
-type FormValues = z.z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof formSchema>;
 interface InventoryItemFormProps {
   initialData?: Partial<InventoryItem>;
   onSubmit: (values: FormValues) => Promise<void>;
@@ -49,11 +49,11 @@ export function InventoryItemForm({ initialData, onSubmit, isLoading }: Inventor
     defaultValues: {
       product_name: initialData?.product_name || '',
       brand: initialData?.brand || '',
-      category: initialData?.category || 'other',
-      condition: initialData?.condition || 'new',
+      category: (initialData?.category as any) || 'other',
+      condition: (initialData?.condition as any) || 'new',
       purchase_date: initialData?.purchase_date || new Date().toISOString().split('T')[0],
       price: initialData?.price || 0,
-      currency: initialData?.currency || 'USD',
+      currency: (initialData?.currency as any) || 'USD',
       location: initialData?.location || '',
       model_number: initialData?.model_number || '',
       serial_number: initialData?.serial_number || '',
@@ -223,13 +223,13 @@ export function InventoryItemForm({ initialData, onSubmit, isLoading }: Inventor
             <FormItem>
               <FormLabel>Additional Notes</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Maintenance logs, specific features, or links to manuals..." 
+                <Textarea
+                  placeholder="Maintenance logs, specific features, or links to manuals..."
                   className="min-h-[120px]"
-                  {...field} 
+                  {...field}
                 />
               </FormControl>
-              <FormDescription>Supports plain text. Markdown rendering coming soon.</FormDescription>
+              <FormDescription>Plain text summary of the item.</FormDescription>
               <FormMessage />
             </FormItem>
           )}

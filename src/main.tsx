@@ -15,6 +15,8 @@ import { HomePage } from '@/pages/HomePage'
 import { InventoryListPage } from '@/pages/InventoryListPage'
 import { ItemDetailPage } from '@/pages/ItemDetailPage'
 import { AddEditItemPage } from '@/pages/AddEditItemPage'
+import { WarrantyAlertsPage } from '@/pages/WarrantyAlertsPage'
+import { SettingsPage } from '@/pages/SettingsPage'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -47,6 +49,16 @@ const router = createBrowserRouter([
   {
     path: "/inventory/:id/edit",
     element: <AddEditItemPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/alerts",
+    element: <WarrantyAlertsPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/settings",
+    element: <SettingsPage />,
     errorElement: <RouteErrorBoundary />,
   }
 ]);
