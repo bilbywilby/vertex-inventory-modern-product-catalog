@@ -13,7 +13,16 @@ import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import '@/index.css'
 import { HomePage } from '@/pages/HomePage'
 import { InventoryListPage } from '@/pages/InventoryListPage'
-const queryClient = new QueryClient();
+import { ItemDetailPage } from '@/pages/ItemDetailPage'
+import { AddEditItemPage } from '@/pages/AddEditItemPage'
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 const router = createBrowserRouter([
   {
     path: "/",
@@ -23,6 +32,21 @@ const router = createBrowserRouter([
   {
     path: "/inventory",
     element: <InventoryListPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/inventory/new",
+    element: <AddEditItemPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/inventory/:id",
+    element: <ItemDetailPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/inventory/:id/edit",
+    element: <AddEditItemPage />,
     errorElement: <RouteErrorBoundary />,
   }
 ]);
